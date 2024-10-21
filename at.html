@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome</title>
+    <link rel="stylesheet" href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.6.0/Control.FullScreen.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fdf5e6;
+            background-image: radial-gradient(#fdd1a2 1px, transparent 1px);
+            background-size: 10px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+        }
+
+        #exportButton, #searchButton {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #exportButton:hover, #searchButton:hover {
+            background-color: #45a049;
+        }
+
+        header {
+            background-color: #fdd1a2;
+            width: 100%;
+            text-align: center;
+            padding: 20px 0;
+            box-shadow: 0 6px 6px -2px rgba(0, 0, 0, 0.3);
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #333;
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #555;
+        }
+
+        #mapid {
+            width: 80%;
+            height: 600px;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            border-radius: 15px;
+        }
+
+        #fullscreenMessage {
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            padding: 10px 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #333;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #333;
+            z-index: 1000;
+            animation: shrinkFade 5s forwards;
+            display: none;
+        }
+
+        #coordinatesForm {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #coordinatesForm input {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        @keyframes shrinkFade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>La Carte centrée à Rabat</h1>
+        <h2>A trial by Othmane and KARIM</h2>
+    </header>
+
+    <!-- Formulaire pour entrer les coordonnées -->
+    <div id="coordinatesForm">
+        <input type="text" id="latitude" placeholder="Entrer latitude">
+        <input type="text" id="longitude" placeholder="Entrer longitude">
+        <button id="searchButton">Placer le marqueur</button>
+    </div>
+
+    <div id="mapid"></div>
+    <!-- Bouton d'exportation -->
+    <button id="exportButton">Exporter en GeoJSON</button>
+
+    <div id="fullscreenMessage">Visualise in Full-screen</div>
+
+
+    
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/1.6.0/Control.FullScreen.js"></script>
+
+    <script>
+        var map = L.map('mapid').setView([33.976424021224126, -6.867128150596436], 12);
+
+        // Define base layers
+        var tileStreets = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        var tileSatellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+            attribution: '&copy; <a href="http://www.google.com/terms.html">Google</a>'
+        });
+
+        var tileTerrain = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            subdomains: ['a', 'b', 'c'],
+            attribution: 'Map data: &copy; <a href="https://www.opentopomap.org/">OpenTopoMap</a> contributors'
+        });
+
+        L.control.layers({
+            "Street Map": tileStreets,
+            "Satellite": tileSatellite,
+            "Topographic": tileTerrain
+        }).addTo(map);
+
+        // Add fullscreen control
+        L.control.fullscreen({
+            title: 'Full Screen',
+            titleCancel: 'Exit Full Screen'
+        }).addTo(map);
+
+        map.on('fullscreenchange', function () {
+            if (map.isFullscreen()) {
+                document.getElementById('fullscreenMessage').style.display = 'block';
+                setTimeout(function () {
+                    document.getElementById('fullscreenMessage').style.display = 'none';
+                }, 5000);
+            }
+        });
+
+        // Create an orange pin marker
+        var orangeIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/images/marker-shadow.png',
+            shadowSize: [41, 41]
+        });
+
+        // Add the marker to the map
+        var marker = L.marker([33.97667185293359, -6.866655241067891], { icon: orangeIcon }).addTo(map);
+
+        // Add an orange circle around the marker with adjustable radius
+        var circle = L.circle([33.976424021224126, -6.867128150596436], {
+            color: 'orange',
+            fillColor: 'orange',
+            fillOpacity: 0.3,
+            radius: 100 // Initial radius
+        }).addTo(map);
+
+        // Smoothly decrease circle radius and remove it
+        function shrinkCircle() {
+            var radius = circle.getRadius();
+            if (radius > 10) {
+                radius -= 10;
+                circle.setRadius(radius);
+                setTimeout(shrinkCircle, 100); // Decrease the radius every 100ms
+            } else {
+                map.removeLayer(circle); // Remove the circle when radius is small enough
+            }
+        }
+        setTimeout(shrinkCircle, 3000); // Start shrinking after 3 seconds
+
+        // Initialize leaflet-geoman controls
+        map.pm.addControls({
+            position: 'topleft',
+            drawMarker: true,
+            drawPolygon: true,
+            drawPolyline: true,
+            drawCircle: true,
+            editMode: true,
+            dragMode: true,
+            cutPolygon: true,
+        });
+
+        // Store all drawn layers
+        var drawnItems = new L.FeatureGroup();
+        map.addLayer(drawnItems);
+
+        // Handle the creation of new layers (markers, polygons, polylines, etc.)
+        map.on('pm:create', function (e) {
+            var layer = e.layer;
+            drawnItems.addLayer(layer); // Add the new layer to the feature group
+        });
+
+        // Export GeoJSON function
+        document.getElementById('exportButton').addEventListener('click', function () {
+            var geojsonData = drawnItems.toGeoJSON();
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojsonData));
+            var downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "map_data.geojson");
+            document.body.appendChild(downloadAnchorNode); // Required for Firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        });
+
+   // Function to load and add GeoJSON to the map and extend the bounds to fit all layers
+   var allLayers = []; // Store layers to adjust bounds later
+        var bounds = new L.LatLngBounds(); // Initialize bounds
+
+        function loadGeoJSON(filePath, styleOptions) {
+    fetch(filePath)
+        .then(response => response.json())
+        .then(data => {
+            var fileName = filePath.split('/').pop().split('.')[0];
+
+            var geoJsonLayer = L.geoJSON(data, {
+                style: styleOptions,
+                onEachFeature: function (feature, layer) {
+                    layer.bindPopup('<b>' + fileName + '</b>'); // Popup for GeoJSON
+                    layer.bindTooltip(fileName, {
+                        permanent: false,
+                        direction: "top",
+                        offset: L.point(0, -10),
+                        className: 'geojson-tooltip'
+                    });
+
+                    // Highlight on hover
+                    layer.on('mouseover', function () {
+                        layer.setStyle({
+                            color: 'purple', // Change color to purple on hover
+                            weight: 4, // Optional: change the weight for better visibility
+                            opacity: 1 // Optional: change opacity if needed
+                        });
+                        this.openTooltip(); // Open tooltip on hover
+                    });
+
+                    // Reset on mouseout
+                    layer.on('mouseout', function () {
+                        layer.setStyle(styleOptions); // Reset to original style
+                        this.closeTooltip(); // Close tooltip when not hovering
+                    });
+                }
+            }).addTo(map);
+
+            allLayers.push(geoJsonLayer); // Add the layer to the array
+            bounds.extend(geoJsonLayer.getBounds()); // Extend bounds to include this layer's bounds
+
+            // Fit map to the combined bounds of all layers
+            map.fitBounds(bounds, { padding: [50, 50] });
+        })
+        .catch(error => console.error('Error loading GeoJSON data:', error));
+}
+
+
+        // Load GeoJSON files here (update with your file paths)
+        loadGeoJSON('http://localhost:8000/deptopo.geojson', { color: '#ff7800', weight: 2, opacity: 0.7 }); //orange
+        loadGeoJSON('http://localhost:8000/depgenierurale.geojson', { color: '#ff7800', weight: 2, opacity: 0.7 }); // Orange
+        loadGeoJSON('http://localhost:8000/capacity.geojson', { color: '#ff5733', weight: 2, opacity: 0.7 }); // Red-Orange
+        loadGeoJSON('http://localhost:8000/poledigi.geojson', { color: '#33ff57', weight: 2, opacity: 0.7 }); // Green
+        loadGeoJSON('http://localhost:8000/thethingneardeptopo.geojson', { color: '#3357ff', weight: 2, opacity: 0.7 }); // Blue
+        loadGeoJSON('http://localhost:8000/anatomie1.geojson', { color: '#f7ff33', weight: 2, opacity: 0.7 }); // Yellow
+        loadGeoJSON('http://localhost:8000/anatomie2.geojson', { color: '#ff33a1', weight: 2, opacity: 0.7 }); // Pink
+        loadGeoJSON('http://localhost:8000/anatomie3.geojson', { color: '#8c33ff', weight: 2, opacity: 0.7 }); // Purple
+        loadGeoJSON('http://localhost:8000/anatomie4.geojson', { color: '#ffbc33', weight: 2, opacity: 0.7 }); // Light Orange
+        loadGeoJSON('http://localhost:8000/anatomie5.geojson', { color: '#33ffbc', weight: 2, opacity: 0.7 }); // Teal
+        loadGeoJSON('http://localhost:8000/veto1.geojson', { color: '#ff3b3b', weight: 2, opacity: 0.7 }); // Bright Red
+        loadGeoJSON('http://localhost:8000/veto2.geojson', { color: '#3bff3b', weight: 2, opacity: 0.7 }); // Bright Green
+        loadGeoJSON('http://localhost:8000/veto3.geojson', { color: '#3b3bff', weight: 2, opacity: 0.7 }); // Bright Blue
+
+    </script>
+</body>
+</html>

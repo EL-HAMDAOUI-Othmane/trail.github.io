@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Welcome to Web Mapping 101 with Othmane and Karim</title>
+    <style>
+        @font-face {
+            font-family: 'CMU Serif';
+            src: url('CMUSerif-Roman.ttf'); /* Ensure the correct path to the CMU Serif font file */
+        }
+
+        body {
+            font-family: 'CMU Serif', serif;
+            background-image: url('2.png'); /* Add the path to your image here */
+            background-size: cover; /* Ensures the image covers the entire background */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background-color: transparent; /* Ensures no color overlay */
+            display: flex;
+            justify-content: center;
+            align-items: flex-end; /* Moves the button towards the bottom */
+            height: 100vh;
+            padding-bottom: 130px; /* Nudges the button a bit higher */
+        }
+
+        @keyframes jump {
+            0%, 100% {
+                transform: translateY(0); /* Start and end at the same position */
+            }
+            50% {
+                transform: translateY(-10px); /* Move up slightly */
+            }
+        }
+
+        #start-button {
+            background-color: #fdd1a2;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            color: #333;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+            animation: jump 2s ease-in-out infinite; /* Apply the bounce animation */
+        }
+
+        #start-button:hover {
+            background-color: #fbb185;
+        }
+    </style>
+</head>
+<body>
+    <button id="start-button" onclick="location.href='at.html'">Explore Away!</button>
+</body>
+</html>
